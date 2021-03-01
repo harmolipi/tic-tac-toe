@@ -1,12 +1,13 @@
 class Game
-  WIN_CONDITIONS = [[0, 0], [1, 0], [2, 0],
-                    [0, 1], [1, 1], [2, 1],
-                    [0, 2], [1, 2], [2, 2],
-                    [0, 0], [0, 1], [0, 2],
-                    [1, 0], [1, 1], [1, 2],
-                    [2, 0], [2, 1], [2, 2],
-                    [0, 0], [1, 1], [2, 2],
-                    [0, 2], [1, 1], [2, 0]]
+  # WIN_CONDITIONS = [[0, 0], [1, 0], [2, 0],
+  #                   [0, 1], [1, 1], [2, 1],
+  #                   [0, 2], [1, 2], [2, 2],
+  #                   [0, 0], [0, 1], [0, 2],
+  #                   [1, 0], [1, 1], [1, 2],
+  #                   [2, 0], [2, 1], [2, 2],
+  #                   [0, 0], [1, 1], [2, 2],
+  #                   [0, 2], [1, 1], [2, 0]]
+  # maybe just reduce these to 'diagonal win conditions' and check them
   COLUMN_DIVIDER = "|"
   ROW_DIVIDER = "---|---|---"
                     # think I can simplify the win conditions...
@@ -42,7 +43,7 @@ class Game
       print_board
       print 'Choose a square: '
       @move = gets.chomp
-      if invalid_move
+      # if invalid_move
       print "\n"
       place_marker(@move, @current_player.game_piece)
       break if game_over?
@@ -83,7 +84,8 @@ class Game
     unless cell_not_empty(cell)
       coordinates = @board_hash[cell].split(',')
       # puts "Coordinates are #{coordinates}"
-      @current_player.player_cells << coordinates
+      # @current_player.player_cells << coordinates
+      @current_player.player_cells << @board_hash[cell]
       # puts "Player #{@current_player.player_num}: #{@current_player.player_cells}"
       board[coordinates[0].to_i][coordinates[1].to_i] = marker
 
@@ -113,9 +115,21 @@ class Game
   end
 
   def game_over?
-    if @current_player.player_cell_counts.value?(3)
+    puts @current_player.player_cells
+    if (@current_player.player_cell_counts.value?(3) ||
+    (@current_player.player_cells.include?("0,0") &&
+    @current_player.player_cells.include?("1,1") && 
+    @current_player.player_cells.include?("2,2")) ||
+    (@current_player.player_cells.include?("0,2") &&
+    @current_player.player_cells.include?("1,1") && 
+    @current_player.player_cells.include?("2,0")))
       @winner = @current_player
       true
+    # elsif (@current_player.player_cells.include?("0,2") &&
+    #   @current_player.player_cells.include?("1,1") && 
+    #   @current_player.player_cells.include?("2,0"))
+    #     @winner = @current_player
+    #     true
     else
       false
     end
