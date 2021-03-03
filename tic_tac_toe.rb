@@ -1,23 +1,7 @@
-# Classes: Game, Player
-#
-# Methods:
-  # Board
-    # Initialize
-    # Play
-    # Place_marker
-    # Player won?
-    # Print board
-    # Switch player
-    # Current player
-    # Get cell
-    # set cell
-  # Player
-    # Select position
+# frozen_string_literal: true
 
 require './game'
 require './player'
-
-
 
 player_one = Player.new('X', 1)
 player_two = Player.new('O', 2)

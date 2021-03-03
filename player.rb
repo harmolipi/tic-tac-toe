@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Player
   attr_reader :game_piece, :player_num
   attr_accessor :player_cells, :player_cell_counts
@@ -10,6 +12,6 @@ class Player
   end
 
   def to_s
-    return "Player #{player_num}"
+    "Player #{player_num}"
   end
 end

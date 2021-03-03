@@ -1,56 +1,60 @@
+# frozen_string_literal: true
+
 class Game
-  # WIN_CONDITIONS = [[0, 0], [1, 0], [2, 0],
-  #                   [0, 1], [1, 1], [2, 1],
-  #                   [0, 2], [1, 2], [2, 2],
-  #                   [0, 0], [0, 1], [0, 2],
-  #                   [1, 0], [1, 1], [1, 2],
-  #                   [2, 0], [2, 1], [2, 2],
-  #                   [0, 0], [1, 1], [2, 2],
-  #                   [0, 2], [1, 1], [2, 0]]
-  # maybe just reduce these to 'diagonal win conditions' and check them
-  COLUMN_DIVIDER = "|"
-  ROW_DIVIDER = "---|---|---"
-                    # think I can simplify the win conditions...
-                    # win if all three have the same number in the first
-                    # or second value, or if it's one of the 2 diagonal options
   attr_reader :board
+
+  DIAGONAL_ONE = ['0,0', '1,1', '2,2']
+  DIAGONAL_TWO = ['0,2', '1,1', '2,0']
+  COLUMN_DIVIDER = '|'
+  ROW_DIVIDER = '---|---|---'
   
   def initialize(player_one, player_two)
-    @board = [['1', '2', '3'], 
+    @board = [['1', '2', '3'],
               ['4', '5', '6'],
               ['7', '8', '9']]
-    
     @board_hash = {}
+    init_board_hash
+    @move = ''
+    @current_player = player_one
+    @next_player = player_two
+    @past_moves = []
+    @winner = @current_player
+  end
 
+  def init_board_hash
     @board.each_with_index do |inner_array, index1|
       inner_array.each_with_index do |cell_number, index2|
         @board_hash[cell_number] = "#{index1},#{index2}"
       end
     end
-
-    # puts @board_hash
-
-    # @board_hash = {1 => [0][0], 2 => [0][1]}
-    @move = ""
-    @current_player = player_one
-    @next_player = player_two
-    @winner
-    @won = false
   end
 
   def play
-    until @won
-      print_board
-      print 'Choose a square: '
-      @move = gets.chomp
-      # if invalid_move
+
+    9.times do
+      begin
+        print_board
+        print "Choose a square, #{@current_player}: "
+        @move = gets.chomp
+        raise if invalid_move(@move)
+      rescue StandardError
+        puts "\nThat was an invalid move! Please try again."
+        retry
+      end
       print "\n"
       place_marker(@move, @current_player.game_piece)
       break if game_over?
       @current_player, @next_player = @next_player, @current_player
     end
+
     print_board
-    puts "#{@winner} won!"
+
+    if @winner != nil
+      puts "#{@winner} won!"
+    else
+      puts "It's a tie!"
+    end
+
   end
 
   def print_row(num)
@@ -58,50 +62,36 @@ class Game
   end
 
   def print_board
-    # puts board[0].join(COLUMN_DIVIDER)
-    # puts ROW_DIVIDER
-    # puts board[1].join(COLUMN_DIVIDER)
-    # puts ROW_DIVIDER
-    # puts board[2].join(COLUMN_DIVIDER)
-
     row_array = []
-    x = 0
-
     print "\n"
 
-    while x < 3
-      row_array << print_row(x)
-      x += 1
+    for i in 0...3
+      row_array << print_row(i)
     end
 
     puts row_array.join("\n#{ROW_DIVIDER}\n")
-
     print "\n"
-
   end
 
   def place_marker(cell, marker)
     unless cell_not_empty(cell)
       coordinates = @board_hash[cell].split(',')
-      # puts "Coordinates are #{coordinates}"
-      # @current_player.player_cells << coordinates
       @current_player.player_cells << @board_hash[cell]
-      # puts "Player #{@current_player.player_num}: #{@current_player.player_cells}"
       board[coordinates[0].to_i][coordinates[1].to_i] = marker
+      @past_moves.push(cell)
 
-      unless @current_player.player_cell_counts["column #{coordinates[0]}"] == nil
-        @current_player.player_cell_counts["column #{coordinates[0]}"] += 1
-      else
+      if @current_player.player_cell_counts["column #{coordinates[0]}"].nil?
         @current_player.player_cell_counts["column #{coordinates[0]}"] = 1
-      end
-
-      unless @current_player.player_cell_counts["row #{coordinates[1]}"] == nil
-        @current_player.player_cell_counts["row #{coordinates[1]}"] += 1
       else
-        @current_player.player_cell_counts["row #{coordinates[1]}"] = 1
+        @current_player.player_cell_counts["column #{coordinates[0]}"] += 1
       end
 
-      # puts "Player #{@current_player.player_num} cell count: #{@current_player.player_cell_counts}"
+      if @current_player.player_cell_counts["row #{coordinates[1]}"].nil?
+        @current_player.player_cell_counts["row #{coordinates[1]}"] = 1
+      else
+        @current_player.player_cell_counts["row #{coordinates[1]}"] += 1
+      end
+
     end
   end
 
@@ -114,24 +104,24 @@ class Game
     get_marker(cell) == @current_player.game_piece || get_marker(cell) == @next_player.game_piece
   end
 
+  def invalid_move(move)
+    # move is a single digit and has not been played yet
+    move !~ /^\d$/ || @past_moves.include?(move)
+  end
+
+  def diagonals?
+    true if DIAGONAL_ONE.all? { |i| @current_player.player_cells.include? i } ||
+            DIAGONAL_TWO.all? { |i| @current_player.player_cells.include? i }
+  end
+
   def game_over?
-    puts @current_player.player_cells
-    if (@current_player.player_cell_counts.value?(3) ||
-    (@current_player.player_cells.include?("0,0") &&
-    @current_player.player_cells.include?("1,1") && 
-    @current_player.player_cells.include?("2,2")) ||
-    (@current_player.player_cells.include?("0,2") &&
-    @current_player.player_cells.include?("1,1") && 
-    @current_player.player_cells.include?("2,0")))
+    if diagonals? || @current_player.player_cell_counts.value?(3)
       @winner = @current_player
+      # @won = true
       true
-    # elsif (@current_player.player_cells.include?("0,2") &&
-    #   @current_player.player_cells.include?("1,1") && 
-    #   @current_player.player_cells.include?("2,0"))
-    #     @winner = @current_player
-    #     true
     else
       false
     end
   end
+
 end
