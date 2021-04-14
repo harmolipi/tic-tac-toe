@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require './game'
-require './player'
+require_relative './game'
+require_relative './player'
 
 player_one = Player.new('X', 1)
 player_two = Player.new('O', 2)

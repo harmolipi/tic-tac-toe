@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
+# rubocop: disable Metrics/ClassLength
+
+require 'pry'
+
 class Game
   attr_reader :board
 
-  DIAGONAL_ONE = ['0,0', '1,1', '2,2']
-  DIAGONAL_TWO = ['0,2', '1,1', '2,0']
+  DIAGONAL_ONE = ['0,0', '1,1', '2,2'].freeze
+  DIAGONAL_TWO = ['0,2', '1,1', '2,0'].freeze
   COLUMN_DIVIDER = '|'
   ROW_DIVIDER = '---|---|---'
-  
+
   def initialize(player_one, player_two)
     @board = [['1', '2', '3'],
               ['4', '5', '6'],
@@ -30,31 +34,37 @@ class Game
   end
 
   def play
+    game_loop
+    print_board
+    puts ending
+  end
 
+  def game_loop
     9.times do
-      begin
-        print_board
-        print "Choose a square, #{@current_player}: "
-        @move = gets.chomp
-        raise if invalid_move(@move)
-      rescue StandardError
-        puts "\nThat was an invalid move! Please try again."
-        retry
-      end
+      @move = player_input
       print "\n"
       place_marker(@move, @current_player.game_piece)
       break if game_over?
+
       @current_player, @next_player = @next_player, @current_player
     end
+  end
 
-    print_board
+  def player_input
+    loop do
+      print_board
+      print "Choose a square, #{@current_player}: "
+      user_input = gets.chomp
+      return user_input if valid_move(user_input)
 
-    if @winner != nil
-      puts "#{@winner} won!"
-    else
-      puts "It's a tie!"
+      puts "\nThat was an invalid move! Please try again."
     end
+  end
 
+  def ending
+    return "#{@winner} won!" unless @winner.nil?
+
+    "It's a tie!"
   end
 
   def print_row(num)
@@ -63,14 +73,8 @@ class Game
 
   def print_board
     row_array = []
-    print "\n"
-
-    for i in 0...3
-      row_array << print_row(i)
-    end
-
-    puts row_array.join("\n#{ROW_DIVIDER}\n")
-    print "\n"
+    3.times { |i| row_array << print_row(i) }
+    puts "\n#{row_array.join("\n#{ROW_DIVIDER}\n")}\n\n"
   end
 
   def place_marker(cell, marker)
@@ -104,9 +108,9 @@ class Game
     get_marker(cell) == @current_player.game_piece || get_marker(cell) == @next_player.game_piece
   end
 
-  def invalid_move(move)
+  def valid_move(move)
     # move is a single digit and has not been played yet
-    move !~ /^\d$/ || @past_moves.include?(move)
+    move =~ /^(?!0)\d$/ && !@past_moves.include?(move)
   end
 
   def diagonals?
@@ -123,5 +127,6 @@ class Game
       false
     end
   end
-
 end
+
+# rubocop: enable Metrics/ClassLength
