@@ -22,7 +22,7 @@ class Game
     @current_player = player_one
     @next_player = player_two
     @past_moves = []
-    @winner = @current_player
+    @winner = nil
   end
 
   def init_board_hash
@@ -62,9 +62,7 @@ class Game
   end
 
   def ending
-    return "#{@winner} won!" unless @winner.nil?
-
-    "It's a tie!"
+    @winner.nil? ? "It's a tie!" : "#{@winner} won!"
   end
 
   def print_row(num)
