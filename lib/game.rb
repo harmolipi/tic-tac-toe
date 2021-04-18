@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 # rubocop: disable Metrics/ClassLength
+# rubocop: disable Metrics/MethodLength
+# rubocop: disable Metrics/AbcSize
 
 require 'pry'
 
@@ -43,9 +45,11 @@ class Game
     9.times do
       @move = player_input
       print "\n"
-      place_marker(@move, @current_player.game_piece)
-      break if game_over?
-
+      place_marker(@move)
+      if game_over?
+        @winner = @current_player
+        break
+      end
       @current_player, @next_player = @next_player, @current_player
     end
   end
@@ -75,31 +79,28 @@ class Game
     puts "\n#{row_array.join("\n#{ROW_DIVIDER}\n")}\n\n"
   end
 
-  def place_marker(cell, marker)
-    unless cell_not_empty(cell)
-      coordinates = @board_hash[cell].split(',')
-      @current_player.player_cells << @board_hash[cell]
-      board[coordinates[0].to_i][coordinates[1].to_i] = marker
-      @past_moves.push(cell)
+  def place_marker(cell)
+    return if cell_not_empty(cell)
 
-      if @current_player.player_cell_counts["column #{coordinates[0]}"].nil?
-        @current_player.player_cell_counts["column #{coordinates[0]}"] = 1
-      else
-        @current_player.player_cell_counts["column #{coordinates[0]}"] += 1
-      end
+    coordinates = get_coordinates(cell)
+    board[coordinates[0]][coordinates[1]] = @current_player.game_piece
+    @past_moves.push(cell)
+    update_cell_counts(coordinates, cell)
+  end
 
-      if @current_player.player_cell_counts["row #{coordinates[1]}"].nil?
-        @current_player.player_cell_counts["row #{coordinates[1]}"] = 1
-      else
-        @current_player.player_cell_counts["row #{coordinates[1]}"] += 1
-      end
+  def update_cell_counts(coordinates, cell)
+    @current_player.player_cell_counts["column #{coordinates[0]}"] += 1
+    @current_player.player_cell_counts["row #{coordinates[1]}"] += 1
+    @current_player.player_cells << @board_hash[cell]
+  end
 
-    end
+  def get_coordinates(cell)
+    @board_hash[cell].split(',').map(&:to_i)
   end
 
   def get_marker(cell)
-    coordinates = @board_hash[cell].split(',')
-    board[coordinates[0].to_i][coordinates[1].to_i]
+    coordinates = get_coordinates(cell)
+    board[coordinates[0]][coordinates[1]]
   end
 
   def cell_not_empty(cell)
@@ -107,24 +108,19 @@ class Game
   end
 
   def valid_move(move)
-    # move is a single digit and has not been played yet
     move =~ /^(?!0)\d$/ && !@past_moves.include?(move)
   end
 
   def diagonals?
-    true if DIAGONAL_ONE.all? { |i| @current_player.player_cells.include? i } ||
-            DIAGONAL_TWO.all? { |i| @current_player.player_cells.include? i }
+    DIAGONAL_ONE.all? { |i| @current_player.player_cells.include? i } ||
+      DIAGONAL_TWO.all? { |i| @current_player.player_cells.include? i }
   end
 
   def game_over?
-    if diagonals? || @current_player.player_cell_counts.value?(3)
-      @winner = @current_player
-      # @won = true
-      true
-    else
-      false
-    end
+    diagonals? || @current_player.player_cell_counts.value?(3)
   end
 end
 
+# rubocop: enable Metrics/AbcSize
+# rubocop: enable Metrics/MethodLength
 # rubocop: enable Metrics/ClassLength

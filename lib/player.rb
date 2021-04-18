@@ -8,7 +8,7 @@ class Player
     @game_piece = game_piece
     @player_num = player_num
     @player_cells = []
-    @player_cell_counts = {}
+    @player_cell_counts = Hash.new { 0 }
   end
 
   def to_s
