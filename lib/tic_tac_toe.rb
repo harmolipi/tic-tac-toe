@@ -5,7 +5,6 @@
 # rubocop: disable Metrics/AbcSize
 
 require_relative './player'
-
 require 'pry'
 
 # Tic-Tac-Toe game class
@@ -38,9 +37,9 @@ class TicTacToe
     end
   end
 
-  def print_board_hash
-    p @board_hash
-  end
+  # def print_board_hash
+  #   p @board_hash
+  # end
 
   def play
     game_loop
@@ -50,6 +49,8 @@ class TicTacToe
 
   def game_loop
     9.times do
+      print_board
+      print "Choose a square, #{@current_player}: "
       @move = player_input
       print "\n"
       place_marker(@move)
@@ -63,13 +64,17 @@ class TicTacToe
 
   def player_input
     loop do
-      print_board
-      print "Choose a square, #{@current_player}: "
       user_input = gets.chomp
       return user_input if valid_move(user_input)
 
-      puts "\nThat was an invalid move! Please try again."
+      input_error
     end
+  end
+
+  def input_error
+    puts "\nThat was an invalid move! Please try again."
+    print_board
+    print "Choose a square,  #{@current_player}: "
   end
 
   def ending
@@ -87,6 +92,7 @@ class TicTacToe
   end
 
   def place_marker(cell)
+    binding.pry
     return if cell_not_empty(cell)
 
     coordinates = get_coordinates(cell)
