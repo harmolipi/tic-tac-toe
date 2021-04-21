@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop: disable Metrics/ClassLength
-# rubocop: disable Metrics/MethodLength
-# rubocop: disable Metrics/AbcSize
-
 require_relative './player'
-require 'pry'
 
 # Tic-Tac-Toe game class
 class TicTacToe
@@ -36,10 +31,6 @@ class TicTacToe
       end
     end
   end
-
-  # def print_board_hash
-  #   p @board_hash
-  # end
 
   def play
     game_loop
@@ -78,7 +69,7 @@ class TicTacToe
   end
 
   def ending
-    @winner.nil? ? "It's a tie!" : "#{@winner} won!"
+    @winner ? "#{@winner} won!" : "It's a tie!"
   end
 
   def print_row(num)
@@ -92,7 +83,6 @@ class TicTacToe
   end
 
   def place_marker(cell)
-    binding.pry
     return if cell_not_empty(cell)
 
     coordinates = get_coordinates(cell)
@@ -133,7 +123,3 @@ class TicTacToe
     diagonals? || @current_player.player_cell_counts.value?(3)
   end
 end
-
-# rubocop: enable Metrics/AbcSize
-# rubocop: enable Metrics/MethodLength
-# rubocop: enable Metrics/ClassLength
