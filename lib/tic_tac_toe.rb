@@ -40,10 +40,8 @@ class TicTacToe
 
   def game_loop
     9.times do
-      print_board
-      print "Choose a square, #{@current_player}: "
+      request_input
       @move = player_input
-      print "\n"
       place_marker(@move)
       if game_over?
         @winner = @current_player
@@ -62,14 +60,18 @@ class TicTacToe
     end
   end
 
-  def input_error
-    puts "\nThat was an invalid move! Please try again."
+  def request_input
     print_board
     print "Choose a square,  #{@current_player}: "
   end
 
-  def ending
-    @winner ? "#{@winner} won!" : "It's a tie!"
+  def input_error
+    puts "\nThat was an invalid move! Please try again."
+    request_input
+  end
+
+  def valid_move(move)
+    move =~ /^(?!0)\d$/ && !@past_moves.include?(move)
   end
 
   def print_row(num)
@@ -91,12 +93,6 @@ class TicTacToe
     update_cell_counts(coordinates, cell)
   end
 
-  def update_cell_counts(coordinates, cell)
-    @current_player.player_cell_counts["column #{coordinates[0]}"] += 1
-    @current_player.player_cell_counts["row #{coordinates[1]}"] += 1
-    @current_player.player_cells << @board_hash[cell]
-  end
-
   def get_coordinates(cell)
     @board_hash[cell].split(',').map(&:to_i)
   end
@@ -106,12 +102,14 @@ class TicTacToe
     board[coordinates[0]][coordinates[1]]
   end
 
-  def cell_not_empty(cell)
-    get_marker(cell) == @current_player.game_piece || get_marker(cell) == @next_player.game_piece
+  def update_cell_counts(coordinates, cell)
+    @current_player.player_cell_counts["column #{coordinates[0]}"] += 1
+    @current_player.player_cell_counts["row #{coordinates[1]}"] += 1
+    @current_player.player_cells << @board_hash[cell]
   end
 
-  def valid_move(move)
-    move =~ /^(?!0)\d$/ && !@past_moves.include?(move)
+  def cell_not_empty(cell)
+    get_marker(cell) == @current_player.game_piece || get_marker(cell) == @next_player.game_piece
   end
 
   def diagonals?
@@ -121,5 +119,9 @@ class TicTacToe
 
   def game_over?
     diagonals? || @current_player.player_cell_counts.value?(3)
+  end
+
+  def ending
+    @winner ? "#{@winner} won!" : "It's a tie!"
   end
 end
